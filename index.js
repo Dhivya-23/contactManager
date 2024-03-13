@@ -114,25 +114,30 @@ app.delete('/delete-contact/:id',async function(request,response){
   })
   
   
-  /*app.get('/search-contact', async function(request, response) {
-    const val=request.body
-    console.log(val)
+  app.get('/search-contact', async (request, response) => {
     try {
-        await Contact.search({
-            "name" : request.body.name,
-            "email" : request.body.email,
-            "phone" : request.body.phone
-        })
-        response.status(201).json({
-            "status" : "success",
-            "message" : "contact created"
-        })
-    } catch(error) {
-        response.status(500).json({
-            "status" : "failure",
-            "message" : "contact not created",
-            "error" : error
-        })
-    }
-})*/
+      const { name, email, phone } = request.query;
+
+      const searchCriteria = {};
+      if (name) searchCriteria.name = { $regex: new RegExp(name, 'i') }; 
+      if (email) searchCriteria.email = { $regex: new RegExp(email, 'i') }; 
+      if (phone) searchCriteria.phone = { $regex: new RegExp(phone, 'i') }; 
   
+      
+      const searchResults = await Contact.find(searchCriteria);
+  
+      response.status(200).json({
+        status: 'success',
+        message: 'Search results retrieved successfully',
+        data: searchResults
+      });
+    } catch (error) {
+  
+      console.error('Error searching contacts:', error);
+      response.status(500).json({
+        status: 'failure',
+        message: 'Could not search contacts',
+        error: error.message
+      });
+    }
+  });
